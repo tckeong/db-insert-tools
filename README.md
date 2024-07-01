@@ -1,19 +1,34 @@
-# README
+# Data Insert Tools
 
-## About
+## Overview
 
-This is the official Wails React-TS template.
+The Data Insert Tools App is a GUI application written in wails (Go framework) that allows users to insert data into database table.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+> Note: This app only test the availability of postgresql.
 
-## Live Development
+## Features:
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+- Flexible Configuration: Easy connect to several database (postgresql, mysql, sqlite, mongodb)
 
-## Building
+## Prerequisites
 
-To build a redistributable, production mode package, use `wails build`.
+Need to install [wails](https://wails.io/).
+
+## Installation
+
+1. Clone the Repository:
+
+```bash
+git clone https://github.com/tckeong/db-insert-tools.git
+cd data-insert-tools
+```
+
+2. Run the projects
+
+```bash
+wails dev
+```
+
+### Advancement
+
+1. add more database support

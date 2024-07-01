@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	DBConn "db-insert-app/internal/dbConnection"
+	models "db-insert-app/internal/models"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -32,17 +33,33 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) ConnectToDB(host, port, username, password, dbname string, dbType int) {
-	// Create a new DB connection
-	a.db = DBConn.New(host, port, username, password, dbname, dbType)
-}
-
 func (a *App) shutdown(_ context.Context) {
 	a.db.Close()
 }
 
-func (a *App) WriteToDB() {
-	fmt.Println("Writing to db")
+func (a *App) ConnectToDB(host, port, username, password, dbname, tableName string, dbType int) {
+	// Create a new DB connection
+	a.db = DBConn.New(host, port, username, password, dbname, tableName, dbType)
+}
+
+func (a *App) WriteToDB(data []models.Pair) error {
+	err := a.db.Write(data)
+
+	if err == nil {
+		runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:    runtime.InfoDialog,
+			Title:   "Insert Data",
+			Message: "Insert Data Success!",
+		})
+	} else {
+		runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:    runtime.InfoDialog,
+			Title:   "Insert Data",
+			Message: "Insert Data Failed!",
+		})
+	}
+
+	return err
 }
 
 func (a *App) Test(host, port, username, password, dbname string) {

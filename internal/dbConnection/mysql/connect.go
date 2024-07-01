@@ -2,21 +2,26 @@ package mysql
 
 import (
 	"database/sql"
-	db "db-insert-app/internal/models"
+	"db-insert-app/internal/models"
+	"fmt"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type MySQLConn struct {
 	// Connection to the database
-	db *sql.DB
+	db        *sql.DB
+	tableName string
 }
 
-func New() *MySQLConn {
-	return &MySQLConn{}
+func New(tableName string) *MySQLConn {
+	return &MySQLConn{
+		tableName: tableName,
+	}
 }
 
-func (m *MySQLConn) Connect(connStr string) (db.DB, error) {
+func (m *MySQLConn) Connect(connStr string) (models.DB, error) {
 	// Connect to the database
 	db, err := sql.Open("mysql", connStr)
 
@@ -33,8 +38,25 @@ func (m *MySQLConn) Connect(connStr string) (db.DB, error) {
 	return m, nil
 }
 
-func (m *MySQLConn) Write() error {
-	return nil
+func (m *MySQLConn) Write(data []models.Pair) error {
+	db := m.db
+	keys := make([]string, len(data))
+	placeholders := make([]string, len(data))
+	values := make([]interface{}, len(data))
+
+	for i, pair := range data {
+		keys[i] = pair.Key
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		values[i] = pair.Value
+	}
+
+	queryKeys := strings.Join(keys, ", ")
+	queryPlaceholders := strings.Join(placeholders, ", ")
+
+	query := fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)", m.tableName, queryKeys, queryPlaceholders)
+
+	_, err := db.Exec(query, values...)
+	return err
 }
 
 func (m *MySQLConn) Close() error {

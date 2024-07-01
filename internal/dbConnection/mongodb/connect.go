@@ -2,11 +2,11 @@ package mongodb
 
 import (
 	"context"
-	db "db-insert-app/internal/models"
+	"db-insert-app/internal/models"
 	"fmt"
-	"regexp"
+	"log"
 
-	_ "go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -20,24 +20,12 @@ type MongoDBConn struct {
 }
 
 // New creates a new MongoDBConn instance
-func New(dbName string) (*MongoDBConn, error) {
-	regex := regexp.MustCompile(`\[(\w+)\/(\w+)\]`)
-
-	match := regex.FindStringSubmatch(dbName)
-
-	if len(match) > 2 {
-		collectionName := match[1]
-		tableName := match[2]
-		return &MongoDBConn{collectionName: collectionName, tableName: tableName}, nil
-	} else {
-		return nil, fmt.Errorf("invalid database name")
-	}
+func New(tableName, dbName string) *MongoDBConn {
+	return &MongoDBConn{collectionName: dbName, tableName: tableName}
 }
 
 // Connect connects to the MongoDB database
-func (m *MongoDBConn) Connect(connStr string) (db.DB, error) {
-	dsn := fmt.Sprintf("%v/%v", connStr, m.tableName)
-
+func (m *MongoDBConn) Connect(dsn string) (models.DB, error) {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(dsn)
 
@@ -47,14 +35,32 @@ func (m *MongoDBConn) Connect(connStr string) (db.DB, error) {
 		return nil, fmt.Errorf("error connecting to the database")
 	}
 
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	m.db = client
 
 	return m, nil
 }
 
 // Write writes to the MongoDB database
-func (m *MongoDBConn) Write() error {
-	return nil
+func (m *MongoDBConn) Write(data []models.Pair) error {
+	// Get a handle for your collection
+	collection := m.db.Database(m.tableName).Collection(m.collectionName)
+
+	// Create a document to insert
+	doc := bson.D{}
+
+	for _, pair := range data {
+		doc = append(doc, bson.E{Key: pair.Key, Value: pair.Value})
+	}
+
+	// Insert the document into the collection
+	_, err := collection.InsertOne(context.TODO(), doc)
+	return err
 }
 
 // Close closes the connection to the MongoDB database

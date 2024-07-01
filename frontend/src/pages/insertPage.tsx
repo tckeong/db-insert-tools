@@ -1,11 +1,11 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import { WriteToDB } from "../../wailsjs/go/main/App";
 
 interface pair {
     key: string;
     value: string;
-
 }
 
 function InsertPage() {
@@ -31,9 +31,9 @@ function InsertPage() {
         setElements(newElements);
     };
 
-    const handleSubmit = (event: { preventDefault: () => void; }) => {
+    const handleSubmit = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        console.log('Submitted Elements:', elements);
+        await WriteToDB(elements).catch((err) => console.error(err));  
     };
 
     return (

@@ -7,7 +7,7 @@ import (
 	MySQL "db-insert-app/internal/dbConnection/mysql"
 	PostgreSQL "db-insert-app/internal/dbConnection/postgresql"
 	SQLite "db-insert-app/internal/dbConnection/sqlite"
-	db "db-insert-app/internal/models"
+	"db-insert-app/internal/models"
 
 	_ "github.com/lib/pq"
 )
@@ -18,10 +18,10 @@ type DBConnection struct {
 	Username string
 	Password string
 	DBName   string
-	db       db.DB
+	db       models.DB
 }
 
-func New(host, port, username, password, dbname string, dbType int) *DBConnection {
+func New(host, port, username, password, dbname, tableName string, dbType int) *DBConnection {
 	dbConn := &DBConnection{
 		Host:     host,
 		Port:     port,
@@ -34,19 +34,19 @@ func New(host, port, username, password, dbname string, dbType int) *DBConnectio
 
 	switch dbType {
 	case 0:
-		db := PostgreSQL.New()
+		db := PostgreSQL.New(tableName)
 		db.Connect(dsn)
 		dbConn.db = db
 	case 1:
-		db := MySQL.New()
+		db := MySQL.New(tableName)
 		db.Connect(dsn)
 		dbConn.db = db
 	case 2:
-		db := SQLite.New()
+		db := SQLite.New(tableName)
 		db.Connect(dsn)
 		dbConn.db = db
 	case 3:
-		db, _ := MongoDB.New(dbname)
+		db := MongoDB.New(dbname, tableName)
 		db.Connect(dsn)
 		dbConn.db = db
 	}
@@ -74,6 +74,6 @@ func (DB *DBConnection) Close() error {
 	return DB.db.Close()
 }
 
-func (DB *DBConnection) Write() error {
-	return nil
+func (DB *DBConnection) Write(data []models.Pair) error {
+	return DB.db.Write(data)
 }

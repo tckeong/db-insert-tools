@@ -2,23 +2,28 @@ package sqlite
 
 import (
 	"database/sql"
-	db "db-insert-app/internal/models"
+	"db-insert-app/internal/models"
+	"fmt"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type SQLiteConn struct {
 	// Connection to the database
-	db *sql.DB
+	db        *sql.DB
+	tableName string
 }
 
-func New() *SQLiteConn {
-	return &SQLiteConn{}
+func New(tableName string) *SQLiteConn {
+	return &SQLiteConn{
+		tableName: tableName,
+	}
 }
 
-func (s *SQLiteConn) Connect(connStr string) (db.DB, error) {
+func (s *SQLiteConn) Connect(dsn string) (models.DB, error) {
 	// Connect to the database
-	db, err := sql.Open("sqlite3", connStr)
+	db, err := sql.Open("sqlite3", dsn)
 
 	if err != nil {
 		return nil, err
@@ -33,8 +38,25 @@ func (s *SQLiteConn) Connect(connStr string) (db.DB, error) {
 	return s, nil
 }
 
-func (s *SQLiteConn) Write() error {
-	return nil
+func (s *SQLiteConn) Write(data []models.Pair) error {
+	db := s.db
+	keys := make([]string, len(data))
+	placeholders := make([]string, len(data))
+	values := make([]interface{}, len(data))
+
+	for i, pair := range data {
+		keys[i] = pair.Key
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		values[i] = pair.Value
+	}
+
+	queryKeys := strings.Join(keys, ", ")
+	queryPlaceholders := strings.Join(placeholders, ", ")
+
+	query := fmt.Sprintf("INSERT INTO %v (%v) VALUES (%v)", s.tableName, queryKeys, queryPlaceholders)
+
+	_, err := db.Exec(query, values...)
+	return err
 }
 
 func (s *SQLiteConn) Close() error {

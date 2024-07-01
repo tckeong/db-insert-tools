@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Dropdown from "../components/dropDown";
 import styles from "./styles/index";
 import { ConnectToDB } from "../../wailsjs/go/main/App"
@@ -10,22 +10,22 @@ function Index() {
     const [user, setUser] = useState("");
     const [password, setPassword] = useState("");
     const [dbname, setDbname] = useState("");
+    const [tablename, setTablename] = useState("");
     const [selectedOption, setSelectedOption] = useState<number>(-1);
     const navigate = useNavigate();
 
     const handleConnect = async () => {
-        // ConnectToDB(host, port, user, password, dbname, selectedOption).then((_) => {
-        //     navigate("/insert");
-        // }).catch((_) => {
-        //     console.log("Error");
-        // });
-        navigate("/insert");
+        ConnectToDB(host, port, user, password, dbname, tablename, selectedOption).then((_) => {
+            navigate("/insert");
+        }).catch((_) => {
+            console.log("Error");
+        });
     }
 
     return (
         <div className="grid grid-rows-5 grid-cols-5 w-full h-full bg-cyan-400">
             <h1 className={styles.home}>Home</h1>
-            <div className="grid grid-rows-5 row-start-2 row-span-3 col-start-2 col-span-3">
+            <div className="grid grid-rows-6 row-start-2 row-span-3 col-start-2 col-span-3">
                 <div className="grid grid-cols-3 row-start-1 row-end-2">
                     <label htmlFor="host-bar" className={styles.label}>Host :</label>
                     <input type="text" id="host-bar" className={styles.input} 
@@ -47,12 +47,17 @@ function Index() {
                          value={password} onChange={(e) => setPassword(e.target.value)}/>
                 </div>
                 <div className="grid grid-cols-3 row-start-5 row-end-6">
+                    <label htmlFor="tablename-bar" className={styles.label}>Table Name :</label>
+                    <input type="text" id="tablename-bar" className={styles.input}
+                         value={tablename} onChange={(e) => setTablename(e.target.value)}/>
+                </div>
+                <div className="grid grid-cols-3 row-start-6 row-end-7">
                     <label htmlFor="dbname-bar" className={styles.label}>DB Name :</label>
                     <input type="text" id="dbname-bar" className={styles.input}
                          value={dbname} onChange={(e) => setDbname(e.target.value)}/>
                 </div>
-                <p className="text-xs font-semibold italic font-mono ml-14 w-full">
-                    ( For sqlite, it is the path; For mongodb, it is in format [tablename/collection name] )
+                <p className="text-xs font-semibold italic font-mono ml-8 mt-4 w-full">
+                    ( For sqlite, it is the path; For mongodb, it is collection name)
                 </p>
             </div>
             <div className="grid grid-cols-2 row-start-5 row-end-6 col-start-2 col-span-3 m">
